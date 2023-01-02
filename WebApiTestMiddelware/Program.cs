@@ -1,9 +1,13 @@
+using WebApiTestMiddelware;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IMessageWriter, LoggingMessageWriter>();
 
 var app = builder.Build();
 
@@ -38,6 +42,8 @@ app.Use(async (context, next) =>
     Console.WriteLine("Two Out");
 
 });
+app.UseMyMiddleware();
+app.UseMyCustomMiddleware();
 app.Use(async (context, next) =>
 {
     // Do work that can write to the Response.
@@ -60,12 +66,12 @@ app.Use(async (context, next) =>
     // Do work that can write to the Response.
     Console.WriteLine("5");
 
-    await next.Invoke();
+    await next(context);
     // Do logging or other work that doesn't write to the Response.
     Console.WriteLine("5 Out");
 
 });
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/weatherforecast1", () =>
 {
     var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
